@@ -1,0 +1,99 @@
+@import url("haiku.css");
+
+/*
+.exerciseblock {
+	border: 1px solid MidnightBlue;
+	background: PowderBlue;
+}
+
+.exercise {
+	padding: 1em;
+	background: transparent;
+}
+
+.solution {
+	padding: 1em;
+	border-top: 1px solid gray;
+	background: transparent;
+	background: LightBlue;
+}
+
+.solution div {
+	display: none;
+}
+.solution button {
+	display: block;
+}
+*/
+
+.numbered-block {
+	padding: 1em;
+	margin-bottom: 1em;
+}
+
+.numbered-block .title {
+	display: block;
+	margin-bottom: 1em;
+}
+
+.numbered-block .label,
+.numbered-block .separator {
+	font-weight: bold;
+}
+
+.example {
+	border: 1px solid green;
+	background: aquamarine;
+}
+
+.definition {
+	border: 1px solid gold;
+	background: PapayaWhip;
+}
+
+.example > .title:before {
+	content: '■';
+	font-size: 1.2em;
+	margin-right: 1em;
+}
+
+.exercise {
+	border-left: 5px solid midnightblue;
+	position: relative;
+	padding: 0 1em;
+	margin-bottom: 0;
+}
+
+.exercise .title {
+	position: absolute;
+	left: -3em;
+}
+
+.exercise p:last-of-type {
+	margin-bottom: 0;
+}
+
+.solution {
+	border-left: 5px solid gray;
+	margin-top: 0;
+	padding: 0 1em;
+	position: relative;
+}
+
+.solution p:first-of-type {
+	margin-top: 0;
+}
+
+.solution div.contents {
+	display: none;
+}
+.solution button {
+	display: block;
+}
+.fake-figure {
+	clear: both;
+}
+
+table.numbered-block {
+	caption-side: bottom;
+}
