@@ -5,7 +5,6 @@ from docutils.parsers.rst.directives.tables import RSTTable
 from sphinx.roles import XRefRole
 from sphinx.addnodes import start_of_file
 from pprint import pprint
-import pdb
 
 def setup(app):
     app.add_config_value('numbered_blocks', [], 'html')
@@ -338,6 +337,8 @@ def doctree_resolved(app, doctree, fromdocname):
         build_labels(app, doctree, fromdocname)
     else:
         for file in files:
+            if len(file.traverse(start_of_file)) > 1:   # not a leaf
+                continue
             build_labels(app, file, file['docname'], ("document-%s-" % file['docname']))
 
     # Resolve references
