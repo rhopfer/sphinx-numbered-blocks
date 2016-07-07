@@ -54,7 +54,7 @@ A definition knows following options:
 
 * `wrap-content` (Format string)  
     Wrap content  
-	Default: '%'
+	Default: '%s'
 
 * `counter` (String)
     Explicite internal counter. Set this if you want to share a counter between two different block types.  
