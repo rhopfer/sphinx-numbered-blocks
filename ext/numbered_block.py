@@ -3,7 +3,9 @@ from docutils.parsers.rst import Directive, directives
 from docutils.parsers.rst.directives.images import Figure
 from docutils.parsers.rst.directives.tables import RSTTable
 from sphinx.roles import XRefRole
+from sphinx.addnodes import start_of_file
 from pprint import pprint
+import pdb
 
 def setup(app):
     app.add_config_value('numbered_blocks', [], 'html')
@@ -284,7 +286,32 @@ def doctree_read(app, doctree):
     env.numbered_blocks_by_id = blocks
 
 
-def doctree_resolved(app, doctree, docname):
+def build_labels(app, doctree, docname, idprefix=''):
+    env = app.builder.env
+    blocks = getattr(env, 'numbered_blocks_by_id', {})
+    definition = getattr(env, 'numbered_blocks_definitions', {})
+    for node in doctree.traverse(lambda n: isinstance(n, numbered_block)
+                                        or isinstance(n, nodes.figure)
+                                        or isinstance(n, nodes.table)):
+        if not 'numbered' in node:
+            continue
+        id = node['ids'][0]
+        block = blocks[docname][id]
+        type = block['type']
+        node['ids'][0] = idprefix + node['ids'][0]
+        if block['number']:
+            label = nodes.inline('', definition[type]['label-format'] % block['number'], classes=['label'])
+            if type == 'figure':
+                pos = node.first_child_matching_class(nodes.caption)
+            elif type == 'table':
+                pos = node.first_child_matching_class(nodes.title)
+            else:
+                pos = node.first_child_matching_class(numbered_block_title)
+
+            node.children[pos].insert(0, label)
+
+
+def doctree_resolved(app, doctree, fromdocname):
     env = app.builder.env
     blocks = getattr(env, 'numbered_blocks_by_id', {})
     definition = getattr(env, 'numbered_blocks_definitions', {})
@@ -306,24 +333,12 @@ def doctree_resolved(app, doctree, docname):
                 block['number'] = False
 
     # Build labels
-    for node in doctree.traverse(lambda n: isinstance(n, numbered_block)
-                                        or isinstance(n, nodes.figure)
-                                        or isinstance(n, nodes.table)):
-        if not 'numbered' in node:
-            continue
-        id = node['ids'][0]
-        block = blocks[docname][id]
-        type = block['type']
-        if block['number']:
-            label = nodes.inline('', definition[type]['label-format'] % block['number'], classes=['label'])
-            if type == 'figure':
-                pos = node.first_child_matching_class(nodes.caption)
-            elif type == 'table':
-                pos = node.first_child_matching_class(nodes.title)
-            else:
-                pos = node.first_child_matching_class(numbered_block_title)
-
-            node.children[pos].insert(0, label)
+    files = doctree.traverse(start_of_file)
+    if not files:
+        build_labels(app, doctree, fromdocname)
+    else:
+        for file in files:
+            build_labels(app, file, file['docname'], ("document-%s-" % file['docname']))
 
     # Resolve references
     anonlabels = env.domains['std'].data['anonlabels']
@@ -345,7 +360,9 @@ def doctree_resolved(app, doctree, docname):
                 label = definition[type]['reference-format'] % block['number'] + postfix
             else:
                 label = target
-            link = "%s#%s" % (app.builder.get_relative_uri(docname, block['docname']), block['id'])
+            link = app.builder.get_relative_uri(fromdocname, block['docname'])
+            link += '#' if link.find('#') == -1 else '-'
+            link += block['id']
 
         if ref['refexplicit']:
             label = ref.astext()
