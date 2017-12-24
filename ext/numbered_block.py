@@ -10,16 +10,19 @@ def setup(app):
     app.add_config_value('numbered_blocks', [], 'html')
 
     # new nodes
-    app.add_node(numbered_block, html=(visit_numbered_block_html, depart_numbered_block_html))
-    app.add_node(numbered_block_ref, html=(visit_numbered_block_ref_html, None))
-    app.add_node(numbered_block_title, html=(visit_numbered_block_title_html, depart_numbered_block_title_html))
+    app.add_node(numbered_block, html=(visit_numbered_block_html, depart_numbered_block_html),
+                 latex=(visit_numbered_block_latex, depart_numbered_block_latex))
+    app.add_node(numbered_block_ref, html=(visit_numbered_block_ref_html, None),
+                 latex=(visit_numbered_block_ref_latex,None))
+    app.add_node(numbered_block_title, html=(visit_numbered_block_title_html, depart_numbered_block_title_html),
+                 latex=(visit_numbered_block_title_latex, depart_numbered_block_title_latex))
 
     app.connect('builder-inited', builder_inited)
     app.connect('env-purge-doc', env_purge_doc)
     app.connect('doctree-read', doctree_read)
     app.connect('doctree-resolved', doctree_resolved)
 
-
+# -- HTML Visitor Functions
 def visit_numbered_block_html(self, node):
     self.body.append(self.starttag(node, 'div'))
 
@@ -35,6 +38,23 @@ def depart_numbered_block_title_html(self, node):
     pass
 
 def visit_numbered_block_ref_html(self, node):
+    self.SkipNode
+
+# -- LaTeX Visitor Functions
+
+def visit_numbered_block_latex(self,node):
+    pass
+
+def depart_numbered_block_latex(self, node):
+    pass
+
+def visit_numbered_block_title_latex(self,node):
+    pass
+
+def depart_numbered_block_title_latex(self,node):
+    pass
+
+def visit_numbered_block_ref_latex(self, node):
     self.SkipNode
 
 class numbered_block(nodes.General, nodes.Element): pass
