@@ -224,6 +224,8 @@ def builder_inited(app):
             definition['counter'] = type;
         if 'title-position' not in definition:
             definition['title-position'] = 'top'
+        if 'subsections' not in definition:
+            definition['subsections'] = False
         elif definition['title-position'] not in ('top','bottom'):
             app.error('Invalid title position: %s' % definition['title-position'])
 
@@ -250,8 +252,7 @@ def doctree_read(app, doctree):
         blocks[env.docname] = {}
 
     for section in doctree.traverse(nodes.section):
-        if not isinstance(section.parent, nodes.document):
-            continue
+
         counts = {}     # block count per chapter
         for node in section.traverse(lambda n: isinstance(n, numbered_block)
                                             or isinstance(n, nodes.figure)
@@ -259,8 +260,14 @@ def doctree_read(app, doctree):
             if not 'numbered' in node:
                 # Not a directive
                 continue
-            id = node['ids'][0]
+
             type = node['type']
+
+            if not definition[type]['subsections']:
+                if not isinstance(section.parent, nodes.document):
+                    continue
+
+            id = node['ids'][0]
 
             counter = definition[type]['counter']
             if counter not in counts:
@@ -279,7 +286,8 @@ def doctree_read(app, doctree):
             else:
                 entry['count'] = counts[counter]
                 counts[counter] += 1
-
+            
+            entry['countstr'] = str(entry['count'])
             blocks[env.docname][id] = entry
 
     env.numbered_blocks_by_id = blocks
@@ -326,8 +334,11 @@ def doctree_resolved(app, doctree, fromdocname):
             if 'secnumber' not in block:
                 block['secnumber'] = secnumbers[doc][anchorname][0]
             type = block['type']
-            if block['count']:
-                block['number'] = str(block['secnumber']) + '.' + str(block['count'])
+            if block['countstr']:
+                if definition[type]['subsections']:
+                    block['number'] = '.'.join([str(item) for item in secnumbers[doc][anchorname]]) + '.' + number_to_letter(block['countstr']) 
+                else:
+                    block['number'] = str(block['secnumber']) + '.' + str(block['count'])
             else:
                 block['number'] = False
 
@@ -371,3 +382,15 @@ def doctree_resolved(app, doctree, fromdocname):
         html = '<a href="%s">%s</a>' % (link, label)
         ref.replace_self(nodes.raw(html, html, format='html'))
 
+def number_to_letter(number):
+    # Takes a number (as a string) and converts to Excel column letters, i.e. "A, B, ... Z, AA, AB..."
+    # Lifted from https://stackoverflow.com/questions/297213/translate-a-column-index-into-an-excel-column-name
+    letter = ''
+    # Convert to zero indexed (i.e., 1 becomes 0, etc.)
+    znumber = int(number) - 1
+    while 1:
+        znumber, remainder = divmod(znumber, 26)
+        letter = chr(remainder + ord('A')) + letter
+        if not znumber:
+            return letter
+        znumber -= 1
