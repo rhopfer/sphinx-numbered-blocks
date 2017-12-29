@@ -64,6 +64,14 @@ A definition knows following options:
 	Position of the title. Not available for tables and figures. For tables use the CSS attribute *caption-side* instead.  
 	Default: 'top'
 
+* `numbering-level` (Integer)
+    Maximum depth to number blocks by subsection. For example, '2' would number blocks as 1.1.A, 1.1.B, 1.2.A, etc.
+	Default: 1 
+
+* `numbering-style` ({arabic|roman|Roman|alpha|Alpha})
+    Style to use for section numbering.
+    Default: arabic
+
 # Use
 ## Directive
 
