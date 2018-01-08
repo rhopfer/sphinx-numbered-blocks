@@ -50,19 +50,27 @@ A definition knows following options:
 
 * `numbered` (Boolean)
     Number blocks  
-	Default: True  
+	Default: True
 
 * `wrap-content` (Format string)  
     Wrap content  
 	Default: '%s'
 
-* `counter` (String)
+* `counter` (String)  
     Explicite internal counter. Set this if you want to share a counter between two different block types.  
 	Default: name
 
 * `title-position` ('top' or 'bottom')  
 	Position of the title. Not available for tables and figures. For tables use the CSS attribute *caption-side* instead.  
 	Default: 'top'
+
+* `numbering-level` (Integer)  
+    Maximum depth to number blocks by subsection. For example, '2' would number blocks as 1.1.1, 1.1.2, 1.2.1, etc.  
+	Default: 1
+
+* `numbering-style` ({arabic|roman|Roman|alpha|Alpha})  
+    Style to use for section numbering. For example, 'Alpha' would number blocks as 1.A, 1.B, etc.  
+    Default: 'arabic'
 
 # Use
 ## Directive

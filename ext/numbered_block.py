@@ -22,7 +22,8 @@ def setup(app):
     app.connect('doctree-read', doctree_read)
     app.connect('doctree-resolved', doctree_resolved)
 
-# -- HTML Visitor Functions
+# Visitor Functions for the new nodes
+# -- HTML
 def visit_numbered_block_html(self, node):
     self.body.append(self.starttag(node, 'div'))
 
@@ -40,8 +41,7 @@ def depart_numbered_block_title_html(self, node):
 def visit_numbered_block_ref_html(self, node):
     self.SkipNode
 
-# -- LaTeX Visitor Functions
-
+# -- LaTeX
 def visit_numbered_block_latex(self,node):
     pass
 
@@ -244,6 +244,10 @@ def builder_inited(app):
             definition['counter'] = type;
         if 'title-position' not in definition:
             definition['title-position'] = 'top'
+        if 'numbering-level' not in definition:
+            definition['numbering-level'] = 1
+        if 'numbering-style' not in definition:
+            definition['numbering-style'] = 'arabic'
         elif definition['title-position'] not in ('top','bottom'):
             app.error('Invalid title position: %s' % definition['title-position'])
 
@@ -270,8 +274,7 @@ def doctree_read(app, doctree):
         blocks[env.docname] = {}
 
     for section in doctree.traverse(nodes.section):
-        if not isinstance(section.parent, nodes.document):
-            continue
+
         counts = {}     # block count per chapter
         for node in section.traverse(lambda n: isinstance(n, numbered_block)
                                             or isinstance(n, nodes.figure)
@@ -279,8 +282,19 @@ def doctree_read(app, doctree):
             if not 'numbered' in node:
                 # Not a directive
                 continue
+
             id = node['ids'][0]
             type = node['type']
+            depth = 0
+            parent = section.parent
+            while not isinstance(parent,nodes.document):
+
+                depth += 1
+                parent = parent.parent
+
+
+            if depth > definition[type]['numbering-level']:
+                continue
 
             counter = definition[type]['counter']
             if counter not in counts:
@@ -299,7 +313,7 @@ def doctree_read(app, doctree):
             else:
                 entry['count'] = counts[counter]
                 counts[counter] += 1
-
+            
             blocks[env.docname][id] = entry
 
     env.numbered_blocks_by_id = blocks
@@ -347,10 +361,13 @@ def doctree_resolved(app, doctree, fromdocname):
                 block['secnumber'] = secnumbers[doc][anchorname][0]
             type = block['type']
             if block['count']:
-                block['number'] = str(block['secnumber']) + '.' + str(block['count'])
+                if definition[type]['numbering-level'] > 0:
+                    block['number'] = '.'.join([str(item) for item in secnumbers[doc][anchorname][:definition[type]['numbering-level']]]) + \
+                                               '.' + block_number(block['count'],definition[type]['numbering-style'])
+                else:
+                    block['number'] = block_number(block['count'],definition[type]['numbering-style'])
             else:
                 block['number'] = False
-
     # Build labels
     files = doctree.traverse(start_of_file)
     if not files:
@@ -391,3 +408,45 @@ def doctree_resolved(app, doctree, fromdocname):
         html = '<a href="%s">%s</a>' % (link, label)
         ref.replace_self(nodes.raw(html, html, format='html'))
 
+def number_to_letter(number):
+    # Takes a number and converts to Excel column letters, i.e. "A, B, ... Z, AA, AB..."
+    # Lifted from https://stackoverflow.com/questions/297213/translate-a-column-index-into-an-excel-column-name
+    letter = ''
+    # Convert to zero indexed (i.e., 1 becomes 0, etc.)
+    znumber = number - 1
+    while 1:
+        znumber, remainder = divmod(znumber, 26)
+        letter = chr(remainder + ord('A')) + letter
+        if not znumber:
+            return letter
+        znumber -= 1
+
+def number_to_roman(num):
+    # Takes a number and converts to roman numerals.
+    # Copied from Aziz Alto in https://stackoverflow.com/questions/28777219/basic-program-to-convert-integer-to-roman-numerals
+    num_map = [(1000, 'M'), (900, 'CM'), (500, 'D'), (400, 'CD'), (100, 'C'), (90, 'XC'),
+           (50, 'L'), (40, 'XL'), (10, 'X'), (9, 'IX'), (5, 'V'), (4, 'IV'), (1, 'I')]
+
+    roman = ''
+
+    while num > 0:
+        for i, r in num_map:
+            while num >= i:
+                roman += r
+                num -= i
+
+    return roman
+
+def block_number(number, type):
+    # Given a number and a type, return the block number as a string of the correct type.
+    # Types can be {arabic|roman|Roman|alpha|Alpha}
+    if type == 'arabic':
+        return str(number)
+    if type == 'Alpha':
+        return number_to_letter(number)
+    if type == 'alpha':
+        return number_to_letter(number).lower()
+    if type == 'Roman':
+        return number_to_roman(number)
+    if type == 'roman':
+        return number_to_roman(number).lower()

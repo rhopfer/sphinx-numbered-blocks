@@ -247,7 +247,7 @@ numbered_blocks = [
         {'name': 'solution', 'numbered': False, 'wrap-content': '<div class="contents">%s</div>\n<button onclick="showhide(this)">Solution</button>\n'},
         {'name': 'exercise', 'label-format': '%s', 'reference-format': 'Exercise %s'},
         {'name': 'definition', 'reference-name': 'defref', 'title-format': '(%s)', 'title-separator': ' '},
-        {'name': 'fake-figure', 'counter': 'figure', 'title-position': 'bottom', 'label-format': 'Figure %s'},
-        {'name': 'figure', 'reference': 'figref'},
+        {'name': 'fake-figure', 'counter': 'figure', 'title-position': 'bottom', 'label-format': 'Figure %s', 'numbering-style': 'Alpha', 'numbering-level': 2},
+        {'name': 'figure', 'reference': 'figref', 'numbering-style': 'Alpha', 'numbering-level': 2},
         {'name': 'table', 'title-position': 'bottom'},
 ]
