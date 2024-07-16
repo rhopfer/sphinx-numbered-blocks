@@ -52,6 +52,7 @@ def visit_numbered_block_title_latex(self,node):
     pass
 
 def depart_numbered_block_title_latex(self,node):
+    self.body.append('\\label{\\detokenize{'+ str(node.parent['ids'][0])+'}}')
     pass
 
 def visit_numbered_block_ref_latex(self, node):
@@ -405,8 +406,15 @@ def doctree_resolved(app, doctree, fromdocname):
         if ref['refexplicit']:
             label = ref.astext()
 
-        html = '<a href="%s">%s</a>' % (link, label)
-        ref.replace_self(nodes.raw(html, html, format='html'))
+        if app.builder.name == 'html':
+            html = '<a href="%s">%s</a>' % (link, label)
+            ref.replace_self(nodes.raw(html, html, format='html'))
+        elif app.builder.name == 'latex':
+            latex = '\\hyperref[\\detokenize{document-' + link[1:].replace('#','-') + '}]{' + label + '}'
+            ref.replace_self(nodes.raw(latex,latex,format='latex'))
+            pass
+        else:
+            pass
 
 def number_to_letter(number):
     # Takes a number and converts to Excel column letters, i.e. "A, B, ... Z, AA, AB..."
