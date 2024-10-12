@@ -1,5 +1,5 @@
 This is a extension for [Sphinx](http://www.sphinx-doc.org/) to create custom numbered environments like definitions, examples or exercises in html documents.
-It was originally written for the online book ["Introduction to Digital Circuits"](https://bibl.ica.jku.at/).
+It was originally written for the online book ["Introduction to Digital Circuits"](https://strumpen.net/dc/build/html/index.html).
 
 
 # Installation
